@@ -14,7 +14,6 @@ const carFiles = upload.fields([
   { name: 'registrationImage', maxCount: 1 },
 ]);
 
-// ---------- Public Routes ----------
 
 // GET /cars (only approved + available listings) filters: location, vehicleType, fuelType, seats, minPrice, maxPrice, search
 router.get('/', asyncHandler(async (req, res) => {
@@ -23,15 +22,11 @@ router.get('/', asyncHandler(async (req, res) => {
   })
 );
 
-// ---------- Owner Routes (Fixed Paths) ----------
-
 // GET /cars/mine -- every car the owner listed (pending/rejected/suspended + adminNote)
 router.get('/mine', ...ownerOnly, asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, cars: await CarService.listByOwner(req.user._id) });
   })
 );
-
-// ---------- Admin Routes (Fixed Paths) ----------
 
 // GET /cars/admin/pending -- listings waiting for review
 router.get('/admin/pending', ...adminOnly, asyncHandler(async (req, res) => {
@@ -45,15 +40,11 @@ router.get('/admin', ...adminOnly, asyncHandler(async (req, res) => {
   })
 );
 
-// ---------- Public Dynamic Routes ----------
-
 // GET /cars/:id
 router.get('/:id', asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, car: await CarService.getById(req.params.id) });
   })
 );
-
-// ---------- Owner: Manage Listing ----------
 
 // POST /cars (multipart, fields: "image" & "registrationImage"). Starts "pending"
 router.post('/', ...ownerOnly, carFiles, asyncHandler(async (req, res) => {
@@ -75,8 +66,6 @@ router.delete('/:id', ...ownerOnly, asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, message: 'Car deleted' });
   })
 );
-
-// ---------- Admin: Review Listing ----------
 
 // PATCH /cars/:id/approve -- makes listing public and bookable
 router.patch('/:id/approve', ...adminOnly, asyncHandler(async (req, res) => {

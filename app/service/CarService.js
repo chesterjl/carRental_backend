@@ -89,7 +89,6 @@ const remove = async (owner, id) => {
 };
 
 //  browsing 
-
 // Public browsing: only approved AND owner-enabled listings. Filters: ?location=&vehicleType=&fuelType=&seats=&minPrice=&maxPrice=&search=
 const list = async (q) => {
   const filter = { isAvailable: true, listingStatus: STATUS.APPROVED };

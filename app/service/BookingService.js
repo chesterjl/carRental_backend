@@ -12,7 +12,6 @@ const round2 = (n) => Math.round(n * 100) / 100;
 const populate = (q) =>
   q.populate('car', 'name imageUrl rentalPrice location').populate('customer', 'name email phone').populate('owner', 'name brandName phone').populate('idDocument', 'idType imageUrl status');
 
-//  helpers 
 const findOwn = async (id, field, user) => {
   const booking = await Booking.findById(id);
   if (!booking) throw new ApiError(404, 'Booking not found.');
