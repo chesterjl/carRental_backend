@@ -14,7 +14,7 @@ Send `Authorization: Bearer <token>` on every protected request. The token holds
 |---|---|---|---|
 | POST | /api/auth/register | public | multipart. Owner: `idImages` x1-2, optional `brandName`, `idType` |
 | POST | /api/auth/login | public | |
-| GET | /api/auth/me | any | |
+| GET | /api/auth/info | get user info | |
 | GET | /api/ids/me | any | my ID records |
 | POST | /api/ids | owner | add another ID (max 2 total) |
 | DELETE | /api/ids/:id | owner | |
@@ -40,5 +40,3 @@ Send `Authorization: Bearer <token>` on every protected request. The token holds
 Set the Xendit invoice callback URL in the Xendit dashboard to `<your-url>/api/payments/xendit/webhook`.
 
 ## Booking status flow
-pending -> approved -> confirmed (downpayment paid) -> ongoing -> returned -> completed (then balance paid)
-pending -> rejected | pending/approved -> cancelled
