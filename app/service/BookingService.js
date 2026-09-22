@@ -4,7 +4,7 @@ const IdDocument = require('../models/IdDocument');
 const IdDocumentService = require('./IdDocumentService');
 const PaymentService = require('./PaymentService');
 const ApiError = require('../utils/ApiError');
-const { BOOKING_STATUS: S, BLOCKING_STATUSES, DELIVERY_METHODS } = require('../config/constants');
+const { BOOKING_STATUS: S, BLOCKING_STATUSES, DELIVERY_METHODS, CAR_LISTING_STATUS } = require('../config/constants');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const round2 = (n) => Math.round(n * 100) / 100;
@@ -12,6 +12,7 @@ const round2 = (n) => Math.round(n * 100) / 100;
 const populate = (q) =>
   q.populate('car', 'name imageUrl rentalPrice location').populate('customer', 'name email phone').populate('owner', 'name brandName phone').populate('idDocument', 'idType imageUrl status');
 
+//  helpers 
 const findOwn = async (id, field, user) => {
   const booking = await Booking.findById(id);
   if (!booking) throw new ApiError(404, 'Booking not found.');
@@ -32,7 +33,7 @@ const hasOverlap = (carId, start, end, excludeId) =>
     ...(excludeId && { _id: { $ne: excludeId } }),
   });
 
-// customer: submit rental request 
+//  customer: submit rental request 
 const create = async (customer, body, file) => {
   const { carId, startDate, endDate, idType, deliveryMethod } = body;
   const start = new Date(startDate);
@@ -51,6 +52,8 @@ const create = async (customer, body, file) => {
 
   const car = await Car.findById(carId);
   if (!car || !car.isAvailable) throw new ApiError(404, 'Car not found or not available.');
+  // Business rule: a rejected listing can't be rented at all, and a suspended one can't take NEW requests.
+  if (car.listingStatus !== CAR_LISTING_STATUS.APPROVED) throw new ApiError(400, 'This car is not currently accepting rental requests.');
   if (await hasOverlap(car._id, start, end)) throw new ApiError(409, 'Car is already booked for those dates.');
 
   // Customer ID: upload once, reuse afterwards
@@ -81,7 +84,7 @@ const create = async (customer, body, file) => {
   return populate(Booking.findById(booking._id));
 };
 
-// customer: lists of booking request
+//  lists 
 const listForCustomer = (userId) => populate(Booking.find({ customer: userId }).sort({ createdAt: -1 }));
 
 // Owner: requests still waiting for review
@@ -98,7 +101,7 @@ const getById = async (user, id) => {
   return booking;
 };
 
-// owner: review request 
+//  owner: review request 
 const approve = async (owner, id) => {
   const booking = await findOwn(id, 'owner', owner);
   assertStatus(booking, [S.PENDING], 'approve');
@@ -120,7 +123,7 @@ const reject = async (owner, id, reason) => {
   return booking;
 };
 
-// customer: cancel (only before downpayment is paid)
+//  customer: cancel (only before downpayment is paid) 
 const cancel = async (customer, id) => {
   const booking = await findOwn(id, 'customer', customer);
   assertStatus(booking, [S.PENDING, S.APPROVED], 'cancel');
@@ -129,7 +132,7 @@ const cancel = async (customer, id) => {
   return booking;
 };
 
-// payments
+//  payments 
 // Flow: owner approves the customer -> customer clicks "Pay downpayment" -> rental confirmed.
 //
 // TEMPORARY: the payment is auto-approved (PaymentService.pay) so the rental is confirmed instantly.
@@ -170,7 +173,7 @@ const confirmBalanceF2F = async (owner, id, amountReceived) => {
   return PaymentService.confirmF2F(booking, 'balance', amount);
 };
 
-// owner: rental lifecycle 
+//  owner: rental lifecycle 
 const markPickedUp = async (owner, id) => {
   const booking = await findOwn(id, 'owner', owner);
   assertStatus(booking, [S.CONFIRMED], 'start rental for');

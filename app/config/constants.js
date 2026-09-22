@@ -1,15 +1,29 @@
 module.exports = {
-  ROLES: { CUSTOMER: 'customer', OWNER: 'owner' },
+  ROLES: { CUSTOMER: 'customer', OWNER: 'owner', ADMIN: 'admin' },
+  // Roles a person can pick for themselves at /users/register. Admin accounts are not self-registered.
+  PUBLIC_ROLES: ['customer', 'owner'],
 
   // Max number of ID images each role may have on file
   ID_LIMITS: { owner: 2, customer: 1 },
-  // Pickup: how the customer gets the car. Return: how the car comes back.
-  // Crossed together these give the 4 combinations (self pickup/return, owner delivers/collects, or a mix).
-  PICKUP_METHODS: ['self_pickup', 'owner_delivery'],
-  RETURN_METHODS: ['self_return', 'owner_pickup'],
+
+  // How the car changes hands, as a single value covering both pickup and return.
+  DELIVERY_METHODS: [
+    'self_pickup_self_return',      // customer picks up, customer returns
+    'self_pickup_owner_pickup',     // customer picks up, owner collects the return
+    'owner_delivery_self_return',   // owner delivers, customer returns
+    'owner_delivery_owner_pickup',  // owner delivers, owner also collects the return
+  ],
 
   VEHICLE_TYPES: ['sedan', 'suv', 'hatchback', 'van', 'pickup', 'motorcycle', 'other'],
   FUEL_TYPES: ['gasoline', 'diesel', 'electric', 'hybrid'],
+
+  // Admin review status for a car listing (separate from `isAvailable`, which the owner toggles themselves).
+  CAR_LISTING_STATUS: {
+    PENDING: 'pending',     // just created / re-submitted, waiting on the admin, not publicly visible
+    APPROVED: 'approved',   // admin verified the registration doc, listing is public and bookable
+    REJECTED: 'rejected',   // admin rejected it (e.g. bad/mismatched registration doc); cannot be rented
+    SUSPENDED: 'suspended', // was approved, admin paused it; cannot receive NEW requests, existing bookings unaffected
+  },
 
   BOOKING_STATUS: {
     PENDING: 'pending',       // request submitted, waiting for owner review

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { VEHICLE_TYPES, FUEL_TYPES } = require('../config/constants');
+const { VEHICLE_TYPES, FUEL_TYPES, CAR_LISTING_STATUS } = require('../config/constants');
 
 const carSchema = new mongoose.Schema(
   {
@@ -13,7 +13,17 @@ const carSchema = new mongoose.Schema(
     fuelType: { type: String, enum: FUEL_TYPES, required: [true, 'Fuel type is required'] },
     location: { type: String, required: [true, 'Location is required'], trim: true },
     seats: { type: Number, required: [true, 'Number of seats is required'], min: 1 },
-    isAvailable: { type: Boolean, default: true }, 
+    isAvailable: { type: Boolean, default: true }, // owner can switch a car off
+
+    // Certificate of Registration (CR/OR-CR) proving this specific car belongs to this owner.
+    // Required per car -- an owner with 5 cars uploads 5 of these, one per listing.
+    registrationImageUrl: { type: String, required: [true, 'Certificate of Registration image is required'] },
+    registrationImagePublicId: { type: String, required: true },
+
+    // Admin review. A car is not publicly visible/bookable until an admin approves it.
+    listingStatus: { type: String, enum: Object.values(CAR_LISTING_STATUS), default: CAR_LISTING_STATUS.PENDING, index: true },
+    adminNote: String,   // reason given on rejection or suspension
+    reviewedAt: Date,    // last time an admin approved/rejected/suspended/reinstated this listing
   },
   { timestamps: true }
 );
