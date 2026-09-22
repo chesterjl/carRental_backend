@@ -6,7 +6,7 @@ const { generateToken } = require('../utils/JwtUtil');
 
 const authResponse = (user) => ({ token: generateToken(user), expiresIn: process.env.JWT_EXPIRES_IN || '1d', user });
 
-// ---------- public: customer / owner self-registration ----------
+//  public: customer / owner self-registration 
 const register = async (body, files) => {
   const { name, email, password, phone, brandName, idType } = body;
   const role = body.role || ROLES.CUSTOMER;
@@ -51,7 +51,7 @@ const login = async ({ email, password }) => {
   return authResponse(user);
 };
 
-// ---------- self-service: update my own info ----------
+//  self-service: update my own info 
 // Anyone can change name/phone/email/password. brandName only applies to owners.
 // Role is never editable here -- that stays admin territory.
 const updateInfo = async (user, body) => {
@@ -79,7 +79,7 @@ const updateInfo = async (user, body) => {
   return user;
 };
 
-// ---------- admin accounts ----------
+//  admin accounts 
 // Shared creation logic. No ID upload, no brandName -- admins aren't verified the way owners/customers are.
 const buildAdmin = async ({ name, email, password, phone }) => {
   if (!name || !email || !password || !phone) throw new ApiError(400, 'name, email, password and phone are required.');
